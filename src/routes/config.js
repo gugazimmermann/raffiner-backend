@@ -5,9 +5,6 @@ const configController = require('../controllers/configController');
 
 const router = express.Router();
 
-// Middleware de autenticação para todas as rotas
-router.use(authMiddleware);
-
 // Validações
 const configValidation = [
   body('street').optional().isString().withMessage('Rua deve ser uma string'),
@@ -22,9 +19,9 @@ const configValidation = [
 ];
 
 // Rotas CRUD
-router.post('/', configValidation, configController.create); // CREATE
-router.get('/', configController.get); // READ
-router.put('/', configValidation, configController.update); // UPDATE
-router.delete('/', configController.delete); // DELETE
+router.post('/', authMiddleware, configValidation, configController.create); // CREATE - precisa de autenticação
+router.get('/', configController.get); // READ - público, sem autenticação
+router.put('/', authMiddleware, configValidation, configController.update); // UPDATE - precisa de autenticação
+router.delete('/', authMiddleware, configController.delete); // DELETE - precisa de autenticação
 
 module.exports = router;
