@@ -9,6 +9,7 @@ connectDB();
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const configRoutes = require('./routes/config');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/config', configRoutes);
 
 app.get('/', (req, res) => {
   res.json({
