@@ -4,6 +4,9 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
 
+const connectDB = require('./config/database');
+connectDB();
+
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 
@@ -23,6 +26,7 @@ app.get('/', (req, res) => {
   res.json({
     message: '🎉 API Raffiner Backend funcionando!',
     version: '1.0.0',
+    database: 'MongoDB Atlas',
     timestamp: new Date().toISOString()
   });
 });

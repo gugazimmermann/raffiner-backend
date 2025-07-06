@@ -1,8 +1,6 @@
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
-
-let users = [];
+const User = require('../models/User');
 
 const authController = {
   async register(req, res) {
@@ -14,25 +12,21 @@ const authController = {
 
       const { name, email, password } = req.body;
 
-      const existingUser = users.find(user => user.email === email);
+      const existingUser = await User.findOne({ email });
       if (existingUser) {
         return res.status(400).json({ error: 'Email já cadastrado' });
       }
 
-      const hashedPassword = await bcrypt.hash(password, 12);
-
-      const user = {
-        id: Date.now().toString(),
+      const user = new User({
         name,
         email,
-        password: hashedPassword,
-        createdAt: new Date()
-      };
+        password
+      });
 
-      users.push(user);
+      await user.save();
 
       const token = jwt.sign(
-        { userId: user.id, email: user.email },
+        { userId: user._id, email: user.email },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
       );
@@ -40,18 +34,14 @@ const authController = {
       res.status(201).json({
         message: 'Usuário criado com sucesso',
         token,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email
-        }
+        user: user.toJSON()
       });
     } catch (error) {
+      console.error('Erro no registro:', error);
       res.status(500).json({ error: 'Erro ao registrar usuário' });
     }
   },
 
-  // Login
   async login(req, res) {
     try {
       const errors = validationResult(req);
@@ -61,21 +51,18 @@ const authController = {
 
       const { email, password } = req.body;
 
-      // Buscar usuário
-      const user = users.find(u => u.email === email);
+      const user = await User.findOne({ email, isActive: true });
       if (!user) {
         return res.status(400).json({ error: 'Credenciais inválidas' });
       }
 
-      // Verificar senha
-      const isValidPassword = await bcrypt.compare(password, user.password);
+      const isValidPassword = await user.comparePassword(password);
       if (!isValidPassword) {
         return res.status(400).json({ error: 'Credenciais inválidas' });
       }
 
-      // Gerar token
       const token = jwt.sign(
-        { userId: user.id, email: user.email },
+        { userId: user._id, email: user.email },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
       );
@@ -83,35 +70,58 @@ const authController = {
       res.json({
         message: 'Login realizado com sucesso',
         token,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email
-        }
+        user: user.toJSON()
       });
     } catch (error) {
+      console.error('Erro no login:', error);
       res.status(500).json({ error: 'Erro ao fazer login' });
     }
   },
 
-  // Perfil do usuário
   async profile(req, res) {
     try {
-      const user = users.find(u => u.id === req.user.userId);
+      const user = await User.findById(req.user.userId);
       if (!user) {
         return res.status(404).json({ error: 'Usuário não encontrado' });
       }
 
       res.json({
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          createdAt: user.createdAt
-        }
+        user: user.toJSON()
       });
     } catch (error) {
+      console.error('Erro ao buscar perfil:', error);
       res.status(500).json({ error: 'Erro ao buscar perfil' });
+    }
+  },
+
+  async updateProfile(req, res) {
+    try {
+      const { name, email } = req.body;
+      
+      const user = await User.findById(req.user.userId);
+      if (!user) {
+        return res.status(404).json({ error: 'Usuário não encontrado' });
+      }
+
+      if (email && email !== user.email) {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          return res.status(400).json({ error: 'Email já está em uso' });
+        }
+      }
+
+      if (name) user.name = name;
+      if (email) user.email = email;
+
+      await user.save();
+
+      res.json({
+        message: 'Perfil atualizado com sucesso',
+        user: user.toJSON()
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      res.status(500).json({ error: 'Erro ao atualizar perfil' });
     }
   }
 };

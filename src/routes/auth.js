@@ -16,8 +16,14 @@ const loginValidation = [
   body('password').notEmpty().withMessage('Senha é obrigatória')
 ];
 
+const updateProfileValidation = [
+  body('name').optional().trim().isLength({ min: 2 }).withMessage('Nome deve ter pelo menos 2 caracteres'),
+  body('email').optional().isEmail().withMessage('Email inválido')
+];
+
 router.post('/register', registerValidation, authController.register);
 router.post('/login', loginValidation, authController.login);
 router.get('/profile', authMiddleware, authController.profile);
+router.put('/profile', authMiddleware, updateProfileValidation, authController.updateProfile);
 
 module.exports = router;
