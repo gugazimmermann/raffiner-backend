@@ -2,7 +2,6 @@ const { validationResult } = require('express-validator');
 const Config = require('../models/Config');
 
 const configController = {
-  // CREATE - Criar nova configuração
   async create(req, res) {
     try {
       const errors = validationResult(req);
@@ -22,7 +21,6 @@ const configController = {
         email
       } = req.body;
 
-      // Verificar se já existe uma configuração
       const existingConfig = await Config.findOne();
       if (existingConfig) {
         return res.status(400).json({ error: 'Já existe uma configuração. Use PUT para atualizar.' });
@@ -52,7 +50,6 @@ const configController = {
     }
   },
 
-  // READ - Buscar configuração
   async get(req, res) {
     try {
       const config = await Config.findOne();
@@ -70,7 +67,6 @@ const configController = {
     }
   },
 
-  // UPDATE - Atualizar configuração
   async update(req, res) {
     try {
       const errors = validationResult(req);
@@ -96,7 +92,6 @@ const configController = {
         return res.status(404).json({ error: 'Configuração não encontrada' });
       }
 
-      // Atualizar campos fornecidos
       if (street !== undefined) config.street = street;
       if (number !== undefined) config.number = number;
       if (neighborhood !== undefined) config.neighborhood = neighborhood;
@@ -119,7 +114,6 @@ const configController = {
     }
   },
 
-  // DELETE - Deletar configuração
   async delete(req, res) {
     try {
       const config = await Config.findOne();

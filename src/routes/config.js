@@ -5,7 +5,6 @@ const configController = require('../controllers/configController');
 
 const router = express.Router();
 
-// Validações
 const configValidation = [
   body('street').optional().isString().withMessage('Rua deve ser uma string'),
   body('number').optional().isInt({ min: 1 }).withMessage('Número deve ser um inteiro maior que 0'),
@@ -18,10 +17,9 @@ const configValidation = [
   body('email').optional().isEmail().withMessage('Email deve ser válido')
 ];
 
-// Rotas CRUD
-router.post('/', authMiddleware, configValidation, configController.create); // CREATE - precisa de autenticação
-router.get('/', configController.get); // READ - público, sem autenticação
-router.put('/', authMiddleware, configValidation, configController.update); // UPDATE - precisa de autenticação
-router.delete('/', authMiddleware, configController.delete); // DELETE - precisa de autenticação
+router.post('/', authMiddleware, configValidation, configController.create);
+router.get('/', configController.get);
+router.put('/', authMiddleware, configValidation, configController.update);
+router.delete('/', authMiddleware, configController.delete);
 
 module.exports = router;
