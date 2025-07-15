@@ -6,8 +6,6 @@ const path = require('path');
 const bannerController = {
   async create(req, res) {
 
-    console.log(req.body)
-
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
